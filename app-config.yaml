@@ -3,7 +3,7 @@ app:
   baseUrl: http://localhost:3000
 
 organization:
-  name: piomin
+  name: mphasis
 
 backend:
   # Used for enabling authentication, secret is shared by all backend plugins
@@ -46,16 +46,19 @@ integrations:
 proxy:
   '/circleci/api':
     target: https://circleci.com/api/v1.1
+    credentials: dangerously-allow-unauthenticated
     headers:
       Circle-Token: ${CIRCLECI_TOKEN}
   '/sonarqube':
     target: https://sonarcloud.io/api
     allowedMethods: [ 'GET', 'POST' ]
+    credentials: dangerously-allow-unauthenticated
     auth: "${SONARCLOUD_TOKEN}:"
   '/argocd/api':
-    target: https://localhost:8443/api/v1/
+    target: https://localhost/api/v1/
     changeOrigin: true
     secure: false
+    credentials: dangerously-allow-unauthenticated
     headers:
       Cookie:
         $env: ARGOCD_TOKEN
@@ -78,9 +81,17 @@ auth:
   providers:
     # See https://backstage.io/docs/auth/guest/provider
     guest: {}
+  plugins:
+    scaffolder:
+      audience: scaffolder
+    catalog:
+      audience: catalog
 
 scaffolder:
   # see https://backstage.io/docs/features/software-templates/configuration for software template options
+  actions:
+    http:
+      githubToken: ${GITHUB_TOKEN} # Reference your token here
 
 catalog:
   import:
@@ -101,6 +112,11 @@ catalog:
 
     - type: url
       target: https://github.com/piomin/backstage-templates/blob/master/templates/spring-boot-basic/template.yaml
+      rules:
+        - allow: [ Template ]
+
+    - type: url
+      target: https://github.com/piomin/backstage-templates/blob/master/templates/spring-boot-basic-on-kubernetes/template.yaml
       rules:
         - allow: [ Template ]
 
@@ -131,10 +147,9 @@ kubernetes:
     - type: 'config'
       clusters:
         - url: ${K8S_URL}
-          name: minikube
+          name: docker-desktop
           authProvider: 'serviceAccount'
-          skipTLSVerify: false
+          skipTLSVerify: true
           skipMetricsLookup: true
           serviceAccountToken: ${K8S_TOKEN}
           dashboardApp: standard
-          caFile: '/Users/pminkows/.minikube/ca.crt'
