@@ -68,6 +68,11 @@ import {
 } from '@roadiehq/backstage-plugin-prometheus';
 import { EntityKubernetesContent } from '@backstage/plugin-kubernetes';
 
+import {
+  EntityOverviewDashboardViewer,
+} from '@k-phoen/backstage-plugin-grafana';
+
+
 const techdocsContent = (
   <EntityTechdocsContent>
     <TechDocsAddons>
@@ -142,6 +147,11 @@ const overviewContent = (
     {entityWarningContent}
     <Grid item md={6}>
       <EntityAboutCard variant="gridItem" />
+    </Grid>
+    <Grid item md={6}>
+      {/* Grafana overview dashboard embed start */}
+      <EntityOverviewDashboardViewer />
+      {/* Grafana overview dashboard embed end */}
     </Grid>
     <Grid item md={6} xs={12}>
       <EntityCatalogGraphCard variant="gridItem" height={400} />

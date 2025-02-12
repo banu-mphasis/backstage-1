@@ -3,7 +3,7 @@ app:
   baseUrl: http://localhost:3000
 
 organization:
-  name: mphasis
+  name: Schwab
 
 backend:
   # Used for enabling authentication, secret is shared by all backend plugins
@@ -62,6 +62,13 @@ proxy:
     headers:
       Cookie:
         $env: ARGOCD_TOKEN
+  '/grafana/api':
+    # May be a public or an internal DNS
+    target: https://banuparasuraman.grafana.net/
+    changeOrigin: true
+    credentials: dangerously-allow-unauthenticated
+    headers:
+      Authorization: Bearer ${GRAFANA_TOKEN}
   '/prometheus/api':
     target: http://localhost:9090/api/v1/
 
@@ -81,6 +88,8 @@ auth:
   providers:
     # See https://backstage.io/docs/auth/guest/provider
     guest: {}
+
+
   plugins:
     scaffolder:
       audience: scaffolder
@@ -110,16 +119,20 @@ catalog:
       rules:
         - allow: [Template]
 
+    #- type: url
+    #  target: https://github.com/piomin/backstage-templates/blob/master/templates/spring-boot-basic/template.yaml
+    #  rules:
+    #    - allow: [ Template ]
+
     - type: url
-      target: https://github.com/piomin/backstage-templates/blob/master/templates/spring-boot-basic/template.yaml
+      target: https://github.com/banu-mphasis/backstage-template/blob/master/templates/spring-boot-basic-on-kubernetes/template.yaml
       rules:
         - allow: [ Template ]
 
     - type: url
-      target: https://github.com/piomin/backstage-templates/blob/master/templates/spring-boot-basic-on-kubernetes/template.yaml
+      target: ../../scaffolder-templates/workload-migration/template.yaml
       rules:
         - allow: [ Template ]
-
     # Local example organizational data
     - type: file
       target: ../../examples/org.yaml
@@ -127,19 +140,27 @@ catalog:
         - allow: [User, Group]
 
     ## Uncomment these lines to add more example data
-    # - type: url
-    #   target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all.yaml
+    - type: url
+      target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/all.yaml
 
     ## Uncomment these lines to add an example org
-    # - type: url
-    #   target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/acme-corp.yaml
-    #   rules:
-    #     - allow: [User, Group]
+    - type: url
+      target: https://github.com/backstage/backstage/blob/master/packages/catalog-model/examples/acme-corp.yaml
+      rules:
+        - allow: [User, Group]
 
 sonarqube:
   baseUrl: https://sonarcloud.io
   apiKey: ${SONARCLOUD_TOKEN}
 
+grafana:
+  # Publicly accessible domain
+  domain: http://34.42.195.150:3000/
+
+  # Is unified alerting enabled in Grafana?
+  # See: https://grafana.com/blog/2021/06/14/the-new-unified-alerting-system-for-grafana-everything-you-need-to-know/
+  # Optional. Default: false
+  unifiedAlerting: false
 kubernetes:
   serviceLocatorMethod:
     type: 'multiTenant'
@@ -153,3 +174,16 @@ kubernetes:
           skipMetricsLookup: true
           serviceAccountToken: ${K8S_TOKEN}
           dashboardApp: standard
+        - url: https://34.122.11.30
+          name: dbmigration
+          authProvider: serviceAccount
+          serviceAccountToken: ${GKE_TOKEN}
+          skipTLSVerify: true
+          skipMetricsLookup: false
+          dashboardApp: gke
+          dashboardParameters:
+            projectId: sparkle-labs-310106
+            region: us-central1-a
+            clusterName: dbmigration
+
+
