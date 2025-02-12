@@ -1,0 +1,80 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: move-workload
+  title: Move Kubernetes Workload Between Clusters
+  description: Moves an existing workload from one GKE cluster to another
+spec:
+  owner: platform-team
+  type: service
+
+  parameters:
+    - title: Choose Source and Destination Clusters
+      required:
+        - sourceCluster
+        - destinationCluster
+        - namespace
+        - workloadName
+      properties:
+        sourceCluster:
+          title: Source Cluster
+          type: string
+          description: The cluster where the workload is currently running
+        destinationCluster:
+          title: Destination Cluster
+          type: string
+          description: The cluster where you want to migrate the workload
+        namespace:
+          title: Namespace
+          type: string
+          description: The Kubernetes namespace for the workload
+        workloadName:
+          title: Workload Name
+          type: string
+          description: The name of the Kubernetes deployment/statefulset to move
+
+  steps:
+    - id: validate-clusters
+      name: Validate Cluster Connectivity
+      action: shell:exec
+      input:
+        command: |
+          gcloud container clusters get-credentials ${{ parameters.sourceCluster }} --region=us-central1
+          gcloud container clusters get-credentials ${{ parameters.destinationCluster }} --region=us-central1
+
+    - id: export-workload
+      name: Export Workload Definition
+      action: shell:exec
+      input:
+        command: |
+          kubectl config use-context gke_PROJECT_ID_us-central1_${{ parameters.sourceCluster }}
+          kubectl get deployment ${{ parameters.workloadName }} -n ${{ parameters.namespace }} -o yaml > workload.yaml
+          kubectl get service ${{ parameters.workloadName }} -n ${{ parameters.namespace }} -o yaml >> workload.yaml
+
+    - id: delete-source
+      name: Delete Workload from Source Cluster
+      action: shell:exec
+      input:
+        command: |
+          kubectl delete deployment ${{ parameters.workloadName }} -n ${{ parameters.namespace }}
+          kubectl delete service ${{ parameters.workloadName }} -n ${{ parameters.namespace }}
+
+    - id: deploy-to-destination
+      name: Deploy Workload to Destination Cluster
+      action: shell:exec
+      input:
+        command: |
+          kubectl config use-context gke_PROJECT_ID_us-central1_${{ parameters.destinationCluster }}
+          kubectl apply -f workload.yaml
+
+    - id: verify-deployment
+      name: Verify Deployment
+      action: shell:exec
+      input:
+        command: |
+          kubectl get pods -n ${{ parameters.namespace }}
+  
+  output:
+    links:
+      - title: View Deployment in Destination Cluster
+        url: https://console.cloud.google.com/kubernetes/deployment/us-central1/${{ parameters.destinationCluster }}/workloads/${{ parameters.workloadName }}
