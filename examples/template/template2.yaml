@@ -2,10 +2,10 @@ apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
   name: move-workload
-  title: Move Kubernetes Workload Between Clusters 
+  title: Move Kubernetes Workload Between Clusters
   description: Moves an existing workload from one GKE cluster to another
 spec:
-  owner: Platform-Team
+  owner: user:guest
   type: service
 
   parameters:
@@ -73,27 +73,6 @@ spec:
       input:
         command: |
           kubectl get pods -n ${{ parameters.namespace }}
-   
-    - id: update-traffic-routing
-      name: Update Service Mesh Routing
-      action: shell:exec
-      input:
-        command: |
-          kubectl apply -f - <<EOF
-          apiVersion: networking.istio.io/v1alpha3
-          kind: VirtualService
-          metadata:
-            name: ${{ parameters.workloadName }}
-          spec:
-            hosts:
-            - ${{ parameters.workloadName }}.svc.cluster.local
-            http:
-            - route:
-              - destination:
-                  host: ${{ parameters.workloadName }}
-                  subset: v2
-                weight: 100
-          EOF
   
   output:
     links:

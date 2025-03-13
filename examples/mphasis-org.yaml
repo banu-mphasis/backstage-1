@@ -1,0 +1,25 @@
+---
+# Define the default group
+apiVersion: backstage.io/v1alpha1
+kind: Group
+metadata:
+  name: default
+spec:
+  type: team
+  profile:
+    displayName: Default Team
+  members:
+    - user:default/banu.parasuraman@mphasis.com
+---
+# Define the user
+apiVersion: backstage.io/v1alpha1
+kind: User
+metadata:
+  name: banu-parasuraman
+spec:
+  profile:
+    displayName: Banu Parasuraman
+    email: banu.parasuraman@mphasis.com
+  memberOf: ['default']
+
+

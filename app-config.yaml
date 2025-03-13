@@ -79,7 +79,7 @@ proxy:
 techdocs:
   builder: 'local' # Alternatives - 'external'
   generator:
-    runIn: 'docker' # Alternatives - 'local'
+    runIn: 'local' # Alternatives - 'local'
   publisher:
     type: 'local' # Alternatives - 'googleGcs' or 'awsS3'. Read documentation for using alternatives.
 
@@ -107,7 +107,7 @@ catalog:
     entityFilename: catalog-info.yaml
     pullRequestBranchName: backstage-integration
   rules:
-    - allow: [Component, System, API, Resource, Location]
+    - allow: [Component, System, API, Resource, User, Group, Location, Template]
   locations:
     # Local example data, file locations are relative to the backend process, typically `packages/backend`
     - type: file
@@ -119,6 +119,7 @@ catalog:
       rules:
         - allow: [Template]
 
+
     #- type: url
     #  target: https://github.com/piomin/backstage-templates/blob/master/templates/spring-boot-basic/template.yaml
     #  rules:
@@ -129,13 +130,37 @@ catalog:
       rules:
         - allow: [ Template ]
 
+
     - type: url
-      target: ../../scaffolder-templates/workload-migration/template.yaml
+      target: https://github.com/banu-mphasis/backstage-template/blob/master/templates/manage-anthos-cluster-policies/template.yaml
       rules:
-        - allow: [ Template ]
+        - allow: [ Template ]    
+
+    - type: url
+      target: https://github.com/banu-mphasis/backstage-template/blob/master/templates/move-workload-anthos/template.yaml
+      rules:
+        - allow: [ Template ]  
+
+    - type: url
+      target: https://github.com/banu-mphasis/backstage-template/blob/master/templates/scale-workloads-anthos/template.yaml
+      rules:
+        - allow: [ Template ]  
+
+   # - type: file
+   #   target: /home/ubuntu/backstage/scaffolder-templates/workload-migration/template.yaml
+   #   rules:
+   #     - allow: [ Template ]
+
+
     # Local example organizational data
     - type: file
       target: ../../examples/org.yaml
+      rules:
+        - allow: [User, Group]
+
+      # Local example organizational data
+    - type: url
+      target: https://github.com/banu-mphasis/backstage-template/blob/master/orgs/org.yaml
       rules:
         - allow: [User, Group]
 
